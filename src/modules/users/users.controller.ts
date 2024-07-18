@@ -6,9 +6,11 @@ import {
   Patch,
   Param,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiTags,
@@ -18,27 +20,31 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { FindUsersDto } from './dto/find-users.dto';
 import { UserPublicProfileResponseDto } from './dto/user-public-profile-response.dto';
 import { UserProfileResponseDto } from './dto/user-profile-response.dto';
+import { JwtGuard } from '../auth/guards/jwt.guard';
+import { CurrentUser } from '../auth/user.decorator';
+import { JwtPayloadDto } from '../auth/dto/jwt-payload';
 
 @ApiTags('users')
+@ApiBearerAuth()
+@UseGuards(JwtGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @ApiOkResponse({ type: UserProfileResponseDto })
   @Get('me')
-  async findOwnProfile() {
-    // TODO
-    const id = 1;
-    return this.usersService.findOne(id);
+  async findOwnProfile(@CurrentUser() user: JwtPayloadDto) {
+    return this.usersService.findOne(user.id);
   }
 
   @ApiOkResponse({ type: UserProfileResponseDto })
   @ApiBadRequestResponse()
   @Patch('me')
-  updateOwnProfile(@Body() updateUserDto: UpdateUserDto) {
-    // TODO
-    const id = 1;
-    return this.usersService.update(id, updateUserDto);
+  updateOwnProfile(
+    @CurrentUser() user: JwtPayloadDto,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return this.usersService.update(user.id, updateUserDto);
   }
 
   @ApiOkResponse()

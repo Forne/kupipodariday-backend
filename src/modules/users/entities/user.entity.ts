@@ -11,6 +11,10 @@ export class User extends CoreEntity {
   username: string;
 
   @ApiProperty()
+  @Column()
+  password: string;
+
+  @ApiProperty()
   @Length(0, 200)
   @Column({ unique: true })
   about: string;
