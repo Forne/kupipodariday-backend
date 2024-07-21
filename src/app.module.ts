@@ -3,8 +3,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
 import { UsersModule } from './modules/users/users.module';
-import { User } from './modules/users/entities/user.entity';
 import { AuthModule } from './modules/auth/auth.module';
+import { OffersModule } from './modules/offers/offers.module';
+import { WishesModule } from './modules/wishes/wishes.module';
+import { WishlistsModule } from './modules/wishlists/wishlists.module';
+import { User } from './modules/users/entities/user.entity';
+import { Wish } from './modules/wishes/entities/wish.entity';
+import { Offer } from './modules/offers/entities/offer.entity';
+import { Wishlist } from './modules/wishlists/entities/wishlist.entity';
 
 @Module({
   imports: [
@@ -18,12 +24,16 @@ import { AuthModule } from './modules/auth/auth.module';
       useFactory: async (configService: ConfigService) => ({
         type: 'postgres',
         url: configService.get<string>('database.url'),
-        entities: [User],
+        entities: [User, Wish, Offer, Wishlist],
+        //migrations: ['src/database/migrations/*.ts'],
         synchronize: true,
       }),
     }),
     UsersModule,
     AuthModule,
+    OffersModule,
+    WishesModule,
+    WishlistsModule,
   ],
   providers: [],
 })

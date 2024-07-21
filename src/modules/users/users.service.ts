@@ -27,6 +27,7 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
+    // TODO: hash password
     this.userRepository.update({ id }, updateUserDto).then(() => {
       return this.userRepository.findOneBy({ id });
     });

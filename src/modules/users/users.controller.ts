@@ -41,8 +41,8 @@ export class UsersController {
   @ApiBadRequestResponse()
   @Patch('me')
   updateOwnProfile(
-    @CurrentUser() user: JwtPayloadDto,
     @Body() updateUserDto: UpdateUserDto,
+    @CurrentUser() user: JwtPayloadDto,
   ) {
     return this.usersService.update(user.id, updateUserDto);
   }
