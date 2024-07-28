@@ -17,7 +17,7 @@ export class WishesService {
 
   async create(createWishDto: CreateWishDto, owner: JwtPayloadDto) {
     const wish = this.wishRepository.create(createWishDto);
-    wish.owner = await this.userService.findOne(owner.id);
+    wish.owner = await this.userService.findOneById(owner.id);
     return this.wishRepository.save(wish).then((res) => {
       res.owner = null;
       return res;
@@ -26,7 +26,7 @@ export class WishesService {
 
   findLast() {
     return this.wishRepository.find({
-      order: { created_at: 'DESC' },
+      order: { createdAt: 'DESC' },
       take: 40,
       cache: 60000,
     });
@@ -41,7 +41,10 @@ export class WishesService {
   }
 
   findOne(id: number) {
-    return this.wishRepository.findOneBy({ id });
+    return this.wishRepository.findOne({
+      where: { id },
+      relations: ['owner', 'offers'],
+    });
   }
 
   update(id: number, updateWishDto: UpdateWishDto) {
@@ -51,6 +54,6 @@ export class WishesService {
   }
 
   remove(id: number) {
-    return `This action removes a #${id} wish`;
+    return this.wishRepository.delete({ id });
   }
 }

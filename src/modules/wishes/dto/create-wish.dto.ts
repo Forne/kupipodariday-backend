@@ -1,4 +1,3 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { PickType } from '@nestjs/swagger';
 import { Wish } from '../entities/wish.entity';
 

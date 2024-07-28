@@ -12,23 +12,31 @@ export class WishlistsService {
     private wishlistRepository: Repository<Wishlist>,
   ) {}
 
-  create(createWishlistDto: CreateWishlistDto) {
-    return 'This action adds a new wishlist';
+  async create(createWishlistDto: CreateWishlistDto) {
+    const wishlist = this.wishlistRepository.create(createWishlistDto);
+    // TODO
+    //wishlist.owner = await this.userRepository.findOneBy({ id: 1 });
+    return this.wishlistRepository.save(wishlist).then((res) => {
+      res.owner = null;
+      return res;
+    });
   }
 
   findAll() {
-    return `This action returns all wishlists`;
+    return this.wishlistRepository.find({});
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} wishlist`;
+    return this.wishlistRepository.findOneBy({ id });
   }
 
   update(id: number, updateWishlistDto: UpdateWishlistDto) {
-    return `This action updates a #${id} wishlist`;
+    return this.wishlistRepository
+      .update({ id }, updateWishlistDto)
+      .then(() => this.wishlistRepository.findOneBy({ id }));
   }
 
   remove(id: number) {
-    return `This action removes a #${id} wishlist`;
+    return this.wishlistRepository.delete({ id });
   }
 }

@@ -1,18 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { IntersectionType, PartialType, PickType } from '@nestjs/swagger';
+import { User } from '../entities/user.entity';
 
-export class CreateUserDto {
-  @ApiProperty()
-  username: string;
-
-  @ApiProperty()
-  about: string;
-
-  @ApiProperty()
-  avatar: string;
-
-  @ApiProperty()
-  email: string;
-
-  @ApiProperty()
-  password: string;
-}
+export class CreateUserDto extends IntersectionType(
+  PickType(User, ['username', 'email', 'password']),
+  PartialType(PickType(User, ['about', 'avatar'])),
+) {}

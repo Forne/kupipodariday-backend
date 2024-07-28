@@ -1,21 +1,11 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { PickType } from '@nestjs/swagger';
+import { User } from '../entities/user.entity';
 
-export class UserPublicProfileResponseDto {
-  @ApiProperty()
-  id: number;
-
-  @ApiProperty()
-  username: string;
-
-  @ApiProperty()
-  about: string;
-
-  @ApiProperty()
-  avatar: string;
-
-  @ApiProperty()
-  createdAt: string;
-
-  @ApiProperty()
-  updatedAt: string;
-}
+export class UserPublicProfileResponseDto extends PickType(User, [
+  'id',
+  'username',
+  'about',
+  'avatar',
+  'createdAt',
+  'updatedAt',
+]) {}

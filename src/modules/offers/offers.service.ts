@@ -12,14 +12,19 @@ export class OffersService {
   ) {}
 
   create(createOfferDto: CreateOfferDto) {
-    return 'This action adds a new offer';
+    const offer = this.offerRepository.create(createOfferDto);
+    // TODO offer.user =
+    return this.offerRepository.save(offer).then((res) => {
+      res.user = null;
+      return res;
+    });
   }
 
   findAll() {
-    return `This action returns all offers`;
+    return this.offerRepository.find({});
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} offer`;
+    return this.offerRepository.findOneBy({ id });
   }
 }

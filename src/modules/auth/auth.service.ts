@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from '../users/entities/user.entity';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UsersService } from '../users/users.service';
+import { SigninUserResponseDto } from './dto/signin-user-response';
 
 @Injectable()
 export class AuthService {
@@ -24,7 +25,7 @@ export class AuthService {
     return null;
   }
 
-  auth(user: User) {
+  auth(user: User): SigninUserResponseDto {
     const payload = { id: user.id };
 
     return { access_token: this.jwtService.sign(payload) };

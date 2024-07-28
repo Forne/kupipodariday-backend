@@ -4,17 +4,27 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Expose } from 'class-transformer';
 
 export class CoreEntity {
-  @ApiProperty()
+  @Expose()
+  @ApiProperty({
+    description: 'A unique identifier',
+  })
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty()
+  @Expose()
+  @ApiProperty({
+    description: 'Date of record creation',
+  })
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
-  @ApiProperty()
+  @Expose()
+  @ApiProperty({
+    description: 'Date of record modification',
+  })
   @UpdateDateColumn()
-  updated_at: Date;
+  updatedAt: Date;
 }

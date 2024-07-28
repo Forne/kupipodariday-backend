@@ -14,6 +14,7 @@ import { AuthService } from './auth.service';
 import { LocalGuard } from './guards/local.guard';
 import { SigninUserDto } from './dto/signin-user';
 import { ApiException } from '../../common/dto/api-exception';
+import { plainToInstance } from 'class-transformer';
 
 @ApiTags('auth')
 @Controller('')
@@ -26,15 +27,17 @@ export class AuthController {
   @ApiUnauthorizedResponse({ type: ApiException })
   @UseGuards(LocalGuard)
   @Post('signin')
-  signIn(@Req() req) {
-    return this.authService.auth(req.user);
+  signIn(@Req() req): SigninUserResponseDto {
+    const result = this.authService.auth(req.user);
+    return plainToInstance(SigninUserResponseDto, result);
   }
 
-  @ApiCreatedResponse({ type: SignupUserResponseDto })
+  //@ApiCreatedResponse({ type: SignupUserResponseDto })
   @ApiBadRequestResponse({ type: ApiException })
   @ApiConflictResponse()
   @Post('signup')
-  signUp(@Body() createUserDto: CreateUserDto) {
-    return this.authService.register(createUserDto);
+  signUp(@Body() createUserDto: CreateUserDto): SignupUserResponseDto {
+    const result = this.authService.register(createUserDto);
+    return plainToInstance(SignupUserResponseDto, result);
   }
 }
