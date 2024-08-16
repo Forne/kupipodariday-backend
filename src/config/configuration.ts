@@ -5,5 +5,6 @@ export default () => ({
   },
   jwt: {
     secret: process.env.JWT_SECRET,
+    expires: parseInt(process.env.JWT_EXPIRATION, 10) || 604800,
   },
 });
