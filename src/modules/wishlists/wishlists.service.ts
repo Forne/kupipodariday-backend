@@ -1,25 +1,36 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { In, Repository } from 'typeorm';
+import { Wishlist } from './entities/wishlist.entity';
+import { User } from '../users/entities/user.entity';
+import { Wish } from '../wishes/entities/wish.entity';
 import { CreateWishlistDto } from './dto/create-wishlist.dto';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Wishlist } from './entities/wishlist.entity';
+import { UserAuthPayloadDto } from '../auth/dto/user-auth-payload-dto';
 
 @Injectable()
 export class WishlistsService {
   constructor(
     @InjectRepository(Wishlist)
     private wishlistRepository: Repository<Wishlist>,
+
+    @InjectRepository(Wish)
+    private wishRepository: Repository<Wish>,
+
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
-  async create(createWishlistDto: CreateWishlistDto) {
+  async create(
+    createWishlistDto: CreateWishlistDto,
+    owner: UserAuthPayloadDto,
+  ) {
     const wishlist = this.wishlistRepository.create(createWishlistDto);
-    // TODO
-    //wishlist.owner = await this.userRepository.findOneBy({ id: 1 });
-    return this.wishlistRepository.save(wishlist).then((res) => {
-      res.owner = null;
-      return res;
+    wishlist.owner = await this.userRepository.findOneBy({ id: owner.id });
+    wishlist.items = await this.wishRepository.findBy({
+      id: In(createWishlistDto.itemsId),
     });
+    return this.wishlistRepository.save(wishlist);
   }
 
   findAll() {
@@ -27,12 +38,22 @@ export class WishlistsService {
   }
 
   findOne(id: number) {
-    return this.wishlistRepository.findOneBy({ id });
+    return this.wishlistRepository.findOne({
+      where: { id },
+      relations: ['items', 'owner'],
+    });
   }
 
-  update(id: number, updateWishlistDto: UpdateWishlistDto) {
+  async update(id: number, updateWishlistDto: UpdateWishlistDto) {
+    let items;
+    if (updateWishlistDto.itemsId) {
+      items = await this.wishRepository.findBy({
+        id: In(updateWishlistDto.itemsId),
+      });
+    }
+
     return this.wishlistRepository
-      .update({ id }, updateWishlistDto)
+      .update({ id }, { ...updateWishlistDto, items })
       .then(() => this.wishlistRepository.findOneBy({ id }));
   }
 

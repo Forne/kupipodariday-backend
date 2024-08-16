@@ -7,14 +7,14 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { CreateUserDto } from '../users/dto/create-user.dto';
-import { SigninUserResponseDto } from './dto/signin-user-response';
-import { SignupUserResponseDto } from './dto/signup-user-response';
+import { plainToInstance } from 'class-transformer';
 import { AuthService } from './auth.service';
 import { LocalGuard } from './guards/local.guard';
 import { SigninUserDto } from './dto/signin-user';
-import { ApiException } from '../../common/dto/api-exception';
-import { plainToInstance } from 'class-transformer';
+import { ApiExceptionDto } from '../../common/dto/api-exception-dto';
+import { CreateUserDto } from '../users/dto/create-user.dto';
+import { SigninUserResponseDto } from './dto/signin-user-response';
+import { SignupUserResponseDto } from './dto/signup-user-response';
 
 @ApiTags('auth')
 @Controller('')
@@ -23,8 +23,8 @@ export class AuthController {
 
   @ApiBody({ type: SigninUserDto })
   @ApiCreatedResponse({ type: SigninUserResponseDto })
-  @ApiBadRequestResponse({ type: ApiException })
-  @ApiUnauthorizedResponse({ type: ApiException })
+  @ApiBadRequestResponse({ type: ApiExceptionDto })
+  @ApiUnauthorizedResponse({ type: ApiExceptionDto })
   @UseGuards(LocalGuard)
   @Post('signin')
   signIn(@Req() req): SigninUserResponseDto {
@@ -32,9 +32,9 @@ export class AuthController {
     return plainToInstance(SigninUserResponseDto, result);
   }
 
-  //@ApiCreatedResponse({ type: SignupUserResponseDto })
-  @ApiBadRequestResponse({ type: ApiException })
-  @ApiConflictResponse()
+  @ApiCreatedResponse({ type: SignupUserResponseDto })
+  @ApiBadRequestResponse({ type: ApiExceptionDto })
+  @ApiConflictResponse({ type: ApiExceptionDto })
   @Post('signup')
   signUp(@Body() createUserDto: CreateUserDto): SignupUserResponseDto {
     const result = this.authService.register(createUserDto);

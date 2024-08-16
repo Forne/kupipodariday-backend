@@ -16,22 +16,22 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { plainToInstance } from 'class-transformer';
 import { UsersService } from './users.service';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { FindUsersDto } from './dto/find-users.dto';
-import { UserPublicProfileResponseDto } from './dto/user-public-profile-response.dto';
-import { UserProfileResponseDto } from './dto/user-profile-response.dto';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { CurrentUser } from '../auth/user.decorator';
-import { JwtPayloadDto } from '../auth/dto/jwt-payload';
-import { ApiException } from '../../common/dto/api-exception';
-import { plainToInstance } from 'class-transformer';
+import { UserPublicProfileResponseDto } from './dto/user-public-profile-response.dto';
+import { UserProfileResponseDto } from './dto/user-profile-response.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { FindUsersDto } from './dto/find-users.dto';
 import { UserProfileWishesResponseDto } from './dto/user-profile-wishes-response.dto';
 import { WishResponseDto } from '../wishes/dto/wish-response.dto';
+import { UserAuthPayloadDto } from '../auth/dto/user-auth-payload-dto';
+import { ApiExceptionDto } from '../../common/dto/api-exception-dto';
 
 @ApiTags('users')
 @ApiBearerAuth()
-@ApiUnauthorizedResponse({ type: ApiException })
+@ApiUnauthorizedResponse({ type: ApiExceptionDto })
 @UseGuards(JwtGuard)
 @Controller('users')
 export class UsersController {
@@ -39,12 +39,12 @@ export class UsersController {
 
   @Get('me')
   async findOwnProfile(
-    @CurrentUser() currentUser: JwtPayloadDto,
+    @CurrentUser() currentUser: UserAuthPayloadDto,
   ): Promise<UserProfileResponseDto> {
     const result = await this.usersService.findOneById(currentUser.id);
     if (!result) {
       throw new NotFoundException(
-        `Object with ${currentUser.id} does not exist.`,
+        `User with ${currentUser.id} does not exist.`,
       );
     }
     return plainToInstance(UserProfileResponseDto, result);
@@ -54,7 +54,7 @@ export class UsersController {
   @Patch('me')
   async updateOwnProfile(
     @Body() updateUserDto: UpdateUserDto,
-    @CurrentUser() currentUser: JwtPayloadDto,
+    @CurrentUser() currentUser: UserAuthPayloadDto,
   ) {
     const result = await this.usersService.update(
       currentUser.id,
@@ -65,12 +65,12 @@ export class UsersController {
 
   @Get('me/wishes')
   async findOwnWishes(
-    @CurrentUser() currentUser: JwtPayloadDto,
+    @CurrentUser() currentUser: UserAuthPayloadDto,
   ): Promise<WishResponseDto[]> {
     const user = await this.usersService.findWishesByUserId(currentUser.id);
     if (!user) {
       throw new NotFoundException(
-        `Object with ${currentUser.id} does not exist.`,
+        `User with ${currentUser.id} does not exist.`,
       );
     }
     return plainToInstance(UserProfileWishesResponseDto, user).wishes;
@@ -83,7 +83,7 @@ export class UsersController {
   ): Promise<UserPublicProfileResponseDto> {
     const result = await this.usersService.findOneByUsername(username);
     if (!result) {
-      throw new NotFoundException(`Object with ${username} does not exist.`);
+      throw new NotFoundException(`User ${username} does not exist.`);
     }
     return plainToInstance(UserPublicProfileResponseDto, result);
   }
@@ -95,7 +95,7 @@ export class UsersController {
   ): Promise<WishResponseDto[]> {
     const user = await this.usersService.findWishesByUsername(username);
     if (!user) {
-      throw new NotFoundException(`Object with ${username} does not exist.`);
+      throw new NotFoundException(`User ${username} does not exist.`);
     }
     return plainToInstance(UserProfileWishesResponseDto, user).wishes;
   }

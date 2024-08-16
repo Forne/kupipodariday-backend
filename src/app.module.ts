@@ -27,6 +27,8 @@ import { Wishlist } from './modules/wishlists/entities/wishlist.entity';
         entities: [User, Wish, Offer, Wishlist],
         //migrations: ['src/database/migrations/*.ts'],
         synchronize: true,
+        //autoLoadModels: true,
+        logging: true,
       }),
     }),
     UsersModule,

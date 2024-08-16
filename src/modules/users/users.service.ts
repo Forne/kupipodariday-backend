@@ -4,8 +4,6 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import * as bcrypt from 'bcrypt';
-import { use } from 'passport';
 import { UserProfileResponseDto } from './dto/user-profile-response.dto';
 
 @Injectable()

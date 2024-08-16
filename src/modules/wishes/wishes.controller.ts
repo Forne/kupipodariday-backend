@@ -19,28 +19,28 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { WishesService } from './wishes.service';
-import { CreateWishDto } from './dto/create-wish.dto';
-import { UpdateWishDto } from './dto/update-wish.dto';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { CurrentUser } from '../auth/user.decorator';
-import { JwtPayloadDto } from '../auth/dto/jwt-payload';
-import { ApiException } from '../../common/dto/api-exception';
+import { CreateWishDto } from './dto/create-wish.dto';
+import { UpdateWishDto } from './dto/update-wish.dto';
+import { UserAuthPayloadDto } from '../auth/dto/user-auth-payload-dto';
+import { ApiExceptionDto } from '../../common/dto/api-exception-dto';
 import { plainToInstance } from 'class-transformer';
 import { WishResponseDto } from './dto/wish-response.dto';
 
 @ApiTags('wishes')
+@ApiBearerAuth()
+@ApiUnauthorizedResponse({ type: ApiExceptionDto })
+@UseGuards(JwtGuard)
 @Controller('wishes')
 export class WishesController {
   constructor(private readonly wishesService: WishesService) {}
 
-  @ApiBadRequestResponse({ type: ApiException })
-  @ApiUnauthorizedResponse({ type: ApiException })
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
+  @ApiBadRequestResponse({ type: ApiExceptionDto })
   @Post()
   create(
     @Body() createWishDto: CreateWishDto,
-    @CurrentUser() user: JwtPayloadDto,
+    @CurrentUser() user: UserAuthPayloadDto,
   ) {
     return this.wishesService.create(createWishDto, user);
   }
@@ -55,49 +55,49 @@ export class WishesController {
     return this.wishesService.findTop();
   }
 
-  @ApiNotFoundResponse()
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
+  @ApiNotFoundResponse({ type: ApiExceptionDto })
   @Get(':id')
   async findOne(@Param('id') id: number) {
-    const result = await this.wishesService.findOne(id);
+    const result = this.wishesService.findOne(+id);
     if (!result) {
-      throw new NotFoundException(`Object with ${id} does not exist.`);
+      throw new NotFoundException(`Wish with ${id} does not exist.`);
     }
     return plainToInstance(WishResponseDto, result);
   }
 
-  @ApiBadRequestResponse({ type: ApiException })
-  @ApiForbiddenResponse()
-  @ApiNotFoundResponse()
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
+  @ApiBadRequestResponse({ type: ApiExceptionDto })
+  @ApiForbiddenResponse({ type: ApiExceptionDto })
+  @ApiNotFoundResponse({ type: ApiExceptionDto })
   @Patch(':id')
   async update(
     @Param('id') id: number,
     @Body() updateWishDto: UpdateWishDto,
-    @CurrentUser() user: JwtPayloadDto,
+    @CurrentUser() user: UserAuthPayloadDto,
   ) {
     const result = await this.wishesService.findOne(id);
     if (!result) {
-      throw new NotFoundException(`Object with ${id} does not exist.`);
+      throw new NotFoundException(`Wish with ${id} does not exist.`);
     }
     if (result.owner.id !== user.id) {
       throw new ForbiddenException('Permission error');
     }
-    // TODO disable change price if offers > 0
+    // disable change price if offers > 0
+    if (result.offers.length > 0) {
+      updateWishDto.price = undefined;
+    }
     return this.wishesService.update(+id, updateWishDto);
   }
 
-  @ApiNotFoundResponse()
-  @ApiForbiddenResponse()
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
+  @ApiNotFoundResponse({ type: ApiExceptionDto })
+  @ApiForbiddenResponse({ type: ApiExceptionDto })
   @Delete(':id')
-  async remove(@Param('id') id: number, @CurrentUser() user: JwtPayloadDto) {
+  async remove(
+    @Param('id') id: number,
+    @CurrentUser() user: UserAuthPayloadDto,
+  ) {
     const result = await this.wishesService.findOne(id);
     if (!result) {
-      throw new NotFoundException(`Object with ${id} does not exist.`);
+      throw new NotFoundException(`Wish with ${id} does not exist.`);
     }
     if (result.owner.id !== user.id) {
       throw new ForbiddenException('Permission error');
@@ -105,16 +105,13 @@ export class WishesController {
     return this.wishesService.remove(+id);
   }
 
-  @ApiNotFoundResponse()
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
+  @ApiNotFoundResponse({ type: ApiExceptionDto })
   @Post(':id/copy')
-  async copy(@Param('id') id: number, @CurrentUser() user: JwtPayloadDto) {
-    const result = await this.wishesService.findOne(id);
+  async copy(@Param('id') id: number, @CurrentUser() user: UserAuthPayloadDto) {
+    const result = this.wishesService.copy(id, user);
     if (!result) {
-      throw new NotFoundException(`Object with ${id} does not exist.`);
+      throw new NotFoundException(`Wish with ${id} does not exist.`);
     }
-    // TODO to CreateWishDto
-    return this.wishesService.create(result, user);
+    return plainToInstance(WishResponseDto, result);
   }
 }

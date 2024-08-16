@@ -48,9 +48,7 @@ export class User extends CoreEntity {
     example: 'admin@x.com',
   })
   @IsEmail()
-  @Column({
-    unique: true,
-  })
+  @Column({ unique: true })
   email: string;
 
   @ApiProperty()

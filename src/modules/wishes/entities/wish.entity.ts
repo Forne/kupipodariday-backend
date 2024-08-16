@@ -1,34 +1,46 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Offer } from '../../offers/entities/offer.entity';
-import { OmitType } from '@nestjs/mapped-types';
 import { CoreEntity } from '../../../common/entities/core.entity';
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { IsUrl, Length } from 'class-validator';
+import { IsUrl, Length, Min } from 'class-validator';
 import { Expose } from 'class-transformer';
 
 @Entity('wishes')
 export class Wish extends CoreEntity {
   @Expose()
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Wish title',
+    example: 'iPhone 16',
+  })
   @Length(1, 250)
   @Column()
   name: string;
 
   @Expose()
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Link to shop',
+    example: 'https://market.yandex.ru/',
+  })
   @IsUrl()
   @Column()
   link: string;
 
   @Expose()
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Link to image',
+    example: 'https://market.example/1.jpg',
+  })
   @IsUrl()
   @Column()
   image: string;
 
   @Expose()
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Price of item',
+    example: 100,
+  })
+  @Min(1)
   @Column()
   price: number;
 
@@ -47,18 +59,19 @@ export class Wish extends CoreEntity {
   copied: number;
 
   @Expose()
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Briefly about item',
+    example: 'lorem...',
+  })
   @Length(1, 1024)
   @Column()
   description: string;
 
-  @ApiProperty()
+  @Expose()
   @ManyToOne(() => User, (user) => user.wishes)
-  owner: User; // ManyToOne
+  owner: User;
 
   @ApiProperty()
   @OneToMany(() => Offer, (offer) => offer.item)
-  offers: Offer[]; // OneToMany
+  offers: Offer[];
 }
-
-export class WishPartial extends OmitType(Wish, ['owner', 'offers']) {}

@@ -1,28 +1,31 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CoreEntity } from '../../../common/entities/core.entity';
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne } from 'typeorm';
+import { Expose } from 'class-transformer';
 import { IsUrl, Length } from 'class-validator';
+import { CoreEntity } from '../../../common/entities/core.entity';
 import { User } from '../../users/entities/user.entity';
 import { Wish } from '../../wishes/entities/wish.entity';
-import { Entity, JoinTable, ManyToMany, ManyToOne } from 'typeorm';
 
 @Entity('wishlists')
 export class Wishlist extends CoreEntity {
+  @Expose()
   @ApiProperty()
   @Length(1, 250)
+  @Column()
   name: string;
 
-  @ApiProperty()
-  @Length(0, 1500)
-  description: string;
-
+  @Expose()
   @ApiProperty()
   @IsUrl()
+  @Column()
   image: string;
 
+  @Expose()
   @ApiProperty()
   @ManyToOne(() => User, (user) => user.wishlists)
   owner: User;
 
+  @Expose()
   @ApiProperty()
   @ManyToMany(() => Wish)
   @JoinTable()

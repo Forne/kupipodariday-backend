@@ -10,33 +10,37 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { WishlistsService } from './wishlists.service';
-import { CreateWishlistDto } from './dto/create-wishlist.dto';
-import { UpdateWishlistDto } from './dto/update-wishlist.dto';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { WishlistsService } from './wishlists.service';
 import { JwtGuard } from '../auth/guards/jwt.guard';
-import { ApiException } from '../../common/dto/api-exception';
 import { CurrentUser } from '../auth/user.decorator';
-import { JwtPayloadDto } from '../auth/dto/jwt-payload';
+import { ApiExceptionDto } from '../../common/dto/api-exception-dto';
+import { CreateWishlistDto } from './dto/create-wishlist.dto';
+import { UpdateWishlistDto } from './dto/update-wishlist.dto';
+import { UserAuthPayloadDto } from '../auth/dto/user-auth-payload-dto';
 
 @ApiTags('wishlists')
 @ApiBearerAuth()
-@ApiUnauthorizedResponse({ type: ApiException })
+@ApiUnauthorizedResponse({ type: ApiExceptionDto })
 @UseGuards(JwtGuard)
-@Controller('wishlists')
+@Controller('wishlistlists')
 export class WishlistsController {
   constructor(private readonly wishlistsService: WishlistsService) {}
 
+  @ApiBadRequestResponse({ type: ApiExceptionDto })
   @Post()
   create(
     @Body() createWishlistDto: CreateWishlistDto,
-    @CurrentUser() user: JwtPayloadDto,
+    @CurrentUser() user: UserAuthPayloadDto,
   ) {
-    return this.wishlistsService.create(createWishlistDto);
+    return this.wishlistsService.create(createWishlistDto, user);
   }
 
   @Get()
@@ -44,36 +48,45 @@ export class WishlistsController {
     return this.wishlistsService.findAll();
   }
 
+  @ApiNotFoundResponse({ type: ApiExceptionDto })
   @Get(':id')
   findOne(@Param('id') id: number) {
     return this.wishlistsService.findOne(+id);
   }
 
+  @ApiBadRequestResponse({ type: ApiExceptionDto })
+  @ApiForbiddenResponse({ type: ApiExceptionDto })
+  @ApiNotFoundResponse({ type: ApiExceptionDto })
   @Patch(':id')
   async update(
     @Param('id') id: number,
     @Body() updateWishlistDto: UpdateWishlistDto,
-    @CurrentUser() user: JwtPayloadDto,
+    @CurrentUser() user: UserAuthPayloadDto,
   ) {
     const result = await this.wishlistsService.findOne(id);
     if (!result) {
-      throw new NotFoundException(`Object with ${id} does not exist.`);
+      throw new NotFoundException(`Wishlist with ${id} does not exist.`);
     }
     if (result.owner.id !== user.id) {
       throw new ForbiddenException('Permission error');
     }
-    return this.wishlistsService.update(+id, updateWishlistDto);
+    return this.wishlistsService.update(id, updateWishlistDto);
   }
 
+  @ApiForbiddenResponse({ type: ApiExceptionDto })
+  @ApiNotFoundResponse({ type: ApiExceptionDto })
   @Delete(':id')
-  async remove(@Param('id') id: number, @CurrentUser() user: JwtPayloadDto) {
+  async remove(
+    @Param('id') id: number,
+    @CurrentUser() user: UserAuthPayloadDto,
+  ) {
     const result = await this.wishlistsService.findOne(id);
     if (!result) {
-      throw new NotFoundException(`Object with ${id} does not exist.`);
+      throw new NotFoundException(`Wishlist with ${id} does not exist.`);
     }
     if (result.owner.id !== user.id) {
       throw new ForbiddenException('Permission error');
     }
-    return this.wishlistsService.remove(+id);
+    return this.wishlistsService.remove(id);
   }
 }
