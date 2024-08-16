@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -14,8 +14,17 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    const user = await this.userRepository.create(createUserDto);
+    const existingUser = await this.userRepository.findOneBy([
+      { email: createUserDto.email },
+      { username: createUserDto.username },
+    ]);
+    if (existingUser.email == createUserDto.email) {
+      throw new BadRequestException('Email already exists');
+    } else if (existingUser.username == createUserDto.username) {
+      throw new BadRequestException('Username already exists');
+    }
 
+    const user = await this.userRepository.create(createUserDto);
     return this.userRepository.save(user);
   }
 
@@ -28,6 +37,20 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
+    if (updateUserDto.email) {
+      const existingUser = await this.userRepository.findOneBy([
+        { email: updateUserDto.email },
+        { username: updateUserDto.username },
+      ]);
+      if (existingUser && existingUser.id !== id) {
+        if (existingUser.email == updateUserDto.email) {
+          throw new BadRequestException('Email already exists');
+        } else if (existingUser.username == updateUserDto.username) {
+          throw new BadRequestException('Username already exists');
+        }
+      }
+    }
+
     // Select, update and return all fields in one query
     const userRow = await this.userRepository
       .createQueryBuilder()
